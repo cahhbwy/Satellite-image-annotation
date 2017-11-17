@@ -1,5 +1,5 @@
 data/CCF-testing/
 data/CCF-training/
 .idea/
-__pycache__/
+data/train/
 *.png

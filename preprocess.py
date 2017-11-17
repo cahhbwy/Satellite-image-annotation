@@ -27,13 +27,30 @@ def visualization(origin, marking, alpha=0.5, show=True, save=False):
         Image.fromarray((alpha * img + (1 - alpha) * origin).astype(np.uint8)).show()
 
 
-def split_data(origin, marking, block_size=128, use_tf=False, overlapping=0.3, random=False, total=8192):
+def split_data(origin, marking, block_size=256, overlapping=0.3, use_tf=False, tfrecords_size=1024, random=False, total=8192):
     shape = marking.size
     if random:
         x = np.random.randint(0, shape[0] - block_size, total)
         y = np.random.randint(0, shape[1] - block_size, total)
         if use_tf:
-            pass
+            count = 0
+            file_num = 0
+            for i in range(total):
+                if count == 0:
+                    print("create data_%04d.tfrecords" % file_num)
+                    writer = tf.python_io.TFRecordWriter("data/train/data_%04d.tfrecords" % file_num)
+                origin_raw = origin.crop((x[i], y[i], x[i] + block_size, y[i] + block_size)).tobytes()
+                marking_raw = marking.crop((x[i], y[i], x[i] + block_size, y[i] + block_size)).tobytes()
+                example = tf.train.Example(features=tf.train.Features(feature={
+                    'origin': tf.train.Feature(bytes_list=tf.train.BytesList(value=[origin_raw])),
+                    'marking': tf.train.Feature(bytes_list=tf.train.BytesList(value=[marking_raw]))
+                }))
+                writer.write(example.SerializeToString())
+                count += 1
+                if count >= tfrecords_size:
+                    count = 0
+                    file_num += 1
+                    writer.close()
         else:
             for i in range(total):
                 origin.crop((x[i], y[i], x[i] + block_size, y[i] + block_size)).save("data/train/%06d.png" % i)
@@ -41,7 +58,25 @@ def split_data(origin, marking, block_size=128, use_tf=False, overlapping=0.3, r
     else:
         i = 0
         if use_tf:
-            pass
+            count = 0
+            file_num = 0
+            for x in range(0, shape[0] - block_size, int(block_size * (1 - overlapping))):
+                for y in range(0, shape[1] - block_size, int(block_size * (1 - overlapping))):
+                    if count == 0:
+                        print("create data_%04d.tfrecords" % file_num)
+                        writer = tf.python_io.TFRecordWriter("data/train/data_%04d.tfrecords" % file_num)
+                    origin_raw = origin.crop((x, y, x + block_size, y + block_size)).tobytes()
+                    marking_raw = marking.crop((x, y, x + block_size, y + block_size)).tobytes()
+                    example = tf.train.Example(features=tf.train.Features(feature={
+                        'origin': tf.train.Feature(bytes_list=tf.train.BytesList(value=[origin_raw])),
+                        'marking': tf.train.Feature(bytes_list=tf.train.BytesList(value=[marking_raw]))
+                    }))
+                    writer.write(example.SerializeToString())
+                    count += 1
+                    if count >= tfrecords_size:
+                        count = 0
+                        file_num += 1
+                        writer.close()
         else:
             for x in range(0, shape[0] - block_size, int(block_size * (1 - overlapping))):
                 for y in range(0, shape[1] - block_size, int(block_size * (1 - overlapping))):
@@ -55,4 +90,4 @@ if __name__ == '__main__':
     _origin = Image.open("data/CCF-training/1-8bits.png")
 
     # visualization(_origin, _marking, 0.5)
-    split_data(_origin, _marking, random=True)
+    split_data(_origin, _marking, use_tf=True, random=True)
