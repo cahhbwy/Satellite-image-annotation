@@ -10,7 +10,7 @@ import tensorflow as tf
 # 2. 道路 (255 ,255,   0)
 # 3. 建筑 (128 ,128, 128)
 # 4. 水体 (  0 ,  0, 255)
-def visualization(origin, marking, alpha=0.5, show=False):
+def visualization(origin, marking, alpha=0.5, show=True, save=False):
     if not isinstance(origin, np.ndarray):
         origin = np.array(origin)
     if not isinstance(marking, np.ndarray):
@@ -20,8 +20,9 @@ def visualization(origin, marking, alpha=0.5, show=False):
     for i in range(5):
         x, y = np.where(marking == i)
         img[x, y, :] = colors[i]
-    Image.fromarray(img).save("temp_1.png")
-    Image.fromarray((alpha * img + (1 - alpha) * origin).astype(np.uint8)).save("temp_2.png")
+    if save:
+        Image.fromarray(img).save("temp_1.png")
+        Image.fromarray((alpha * img + (1 - alpha) * origin).astype(np.uint8)).save("temp_2.png")
     if show:
         Image.fromarray((alpha * img + (1 - alpha) * origin).astype(np.uint8)).show()
 
