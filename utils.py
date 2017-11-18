@@ -122,7 +122,7 @@ def bias(name, shape, bias_start=0.0, trainable=True):
     return tf.get_variable(name, shape, tf.float32, trainable=trainable, initializer=tf.constant_initializer(bias_start, dtype=tf.float32))
 
 
-def weight(name, shape, stddev=0.02, trainble=True):
+def weight(name, shape, stddev=0.5, trainble=True):
     return tf.get_variable(name, shape, tf.float32, trainable=trainble, initializer=tf.random_normal_initializer(stddev=stddev, dtype=tf.float32))
 
 
