@@ -28,7 +28,6 @@ if __name__ == '__main__':
     sess = tf.InteractiveSession()
     sess.run(tf.global_variables_initializer())
     tf.train.start_queue_runners(sess=sess)
-    index = 0
     for step in range(10000):
         _, v_loss = sess.run([op, m_loss], feed_dict={global_step: step})
         if step % 10 == 0:
