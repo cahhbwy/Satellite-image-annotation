@@ -8,20 +8,12 @@ import tensorflow as tf
 
 def generator(_origin, _rand, _rand_dim, _batch_size, _is_train=True):
     with tf.name_scope("generator"):
-        # 从卫星图像中生成简要模型
-        g_0 = tf.nn.relu(conv2d(tf.divide(tf.cast(_origin, tf.float32), 255.), 10, k_h=11, k_w=11, strides=(1, 4, 4, 1), name="gen_conv2d_0"))  # (64,64)
-        g_1 = tf.nn.relu(conv2d(g_0, 20, k_h=9, k_w=9, strides=(1, 4, 4, 1), name="gen_conv2d_1"))  # (16,16)
-        g_2 = tf.nn.relu(conv2d(g_1, 30, k_h=7, k_w=7, strides=(1, 2, 2, 1), name="gen_conv2d_2"))  # (8,8)
-        g_3 = tf.nn.relu(conv2d(g_2, 40, k_h=5, k_w=5, strides=(1, 2, 2, 1), name="gen_conv2d_3"))  # (4,4)
-        # 生成标记图像
-        g_4 = conv_cond_concat(g_3, tf.reshape(_rand, [batch_size, 1, 1, _rand_dim]), name="gen_concat_4")
-        g_5 = lrelu(deconv2d(g_4, (_batch_size, 8, 8, 50), k_h=5, k_w=5, strides=(1, 2, 2, 1), name="gen_deconv2d_5"))  # (8,8)
-        g_6 = lrelu(deconv2d(g_5, (_batch_size, 16, 16, 40), k_h=5, k_w=5, strides=(1, 2, 2, 1), name="gen_deconv2d_6"))  # (16,16)
-        g_7 = lrelu(deconv2d(g_6, (_batch_size, 32, 32, 30), k_h=5, k_w=5, strides=(1, 2, 2, 1), name="gen_deconv2d_7"))  # (32,32)
-        g_8 = lrelu(deconv2d(g_7, (_batch_size, 64, 64, 20), k_h=5, k_w=5, strides=(1, 2, 2, 1), name="gen_deconv2d_8"))  # (64,64)
-        g_9 = lrelu(deconv2d(g_8, (_batch_size, 128, 128, 10), k_h=5, k_w=5, strides=(1, 2, 2, 1), name="gen_deconv2d_9"))  # (128,128)
-        g_10 = deconv2d(g_9, (_batch_size, 256, 256, 5), k_h=5, k_w=5, strides=(1, 2, 2, 1), name="gen_deconv2d_10")  # (256,256)
-        return g_10
+        g_0 = tf.divide(tf.cast(_origin, tf.float32), 255.)
+        g_1 = lrelu(conv2d(g_0, 30, k_h=11, k_w=11, strides=(1, 1, 1, 1), name="gen_conv2d_1"))
+        g_2 = lrelu(conv2d(g_1, 30, k_h=11, k_w=11, strides=(1, 1, 1, 1), name="gen_conv2d_2"))
+        g_3 = lrelu(conv2d(g_2, 30, k_h=11, k_w=11, strides=(1, 1, 1, 1), name="gen_conv2d_3"))
+        g_4 = conv2d(g_3, 5, k_h=11, k_w=11, strides=(1, 1, 1, 1), name="gen_conv2d_6")
+        return g_4
 
 
 def discriminator(_origin, _marking_onehot, _batch_size, reuse=False):
@@ -94,7 +86,7 @@ if __name__ == '__main__':
         rand_val = np.random.uniform(-1, 1, size=(batch_size, rand_dim)).astype(np.float32)
         for _ in range(1):
             _, dis_loss_val = sess.run([train_op_dis, dis_loss], feed_dict={rand: rand_val})
-        for _ in range(5):
+        for _ in range(3):
             _, gen_loss_val = sess.run([train_op_gen, gen_loss], feed_dict={rand: rand_val})
         if step % 10 == 0:
             print("step: %5d; dis_loss: %6f, gen_loss: %6f" % (step, dis_loss_val, gen_loss_val))
