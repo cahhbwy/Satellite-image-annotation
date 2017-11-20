@@ -199,4 +199,4 @@ if __name__ == '__main__':
     origin = Image.open("data/CCF-training/1-8bits.png")
 
     # visualization(_origin, _marking, 0.5)
-    split_data(origin, marking, use_tf=True, random=True)
+    split_data(origin, marking, block_size=512, use_tf=True, random=True, image_num=256)
