@@ -2,5 +2,5 @@ __pycache__/
 data/CCF-testing/
 data/CCF-training/
 .idea/
-data/train/
+data/train*
 *.png

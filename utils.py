@@ -27,18 +27,17 @@ def visualization(_origin, _marking, alpha=0.5, show=True, save=False, save_path
         Image.fromarray((alpha * img + (1 - alpha) * _origin).astype(np.uint8)).show()
 
 
-def split_data(_origin, _marking, block_size=256, overlapping=0.3, use_tf=False, image_num=1024, random=False, total=8192):
+def split_data(_origin, _marking, save_path="data/train/", block_size=256, overlapping=0.3, use_tf=False, image_num=1024, random=False, total=8192, index=0):
     shape = _marking.size
     if random:
         x = np.random.randint(0, shape[0] - block_size, total)
         y = np.random.randint(0, shape[1] - block_size, total)
         if use_tf:
             count = 0
-            file_num = 0
             for i in range(total):
                 if count == 0:
-                    print("create data_%04d.tfrecords" % file_num)
-                    writer = tf.python_io.TFRecordWriter("data/train/data_%04d.tfrecords" % file_num)
+                    print("create data_%04d.tfrecords" % index)
+                    writer = tf.python_io.TFRecordWriter(save_path + "data_%04d.tfrecords" % index)
                 origin_raw = _origin.crop((x[i], y[i], x[i] + block_size, y[i] + block_size)).tobytes()
                 marking_raw = _marking.crop((x[i], y[i], x[i] + block_size, y[i] + block_size)).tobytes()
                 example = tf.train.Example(features=tf.train.Features(feature={
@@ -49,22 +48,21 @@ def split_data(_origin, _marking, block_size=256, overlapping=0.3, use_tf=False,
                 count += 1
                 if count >= image_num:
                     count = 0
-                    file_num += 1
+                    index += 1
                     writer.close()
         else:
             for i in range(total):
-                _origin.crop((x[i], y[i], x[i] + block_size, y[i] + block_size)).save("data/train/%06d.png" % i)
-                _marking.crop((x[i], y[i], x[i] + block_size, y[i] + block_size)).save("data/train/%06d_class.png" % i)
+                _origin.crop((x[i], y[i], x[i] + block_size, y[i] + block_size)).save(save_path + "%06d.png" % i)
+                _marking.crop((x[i], y[i], x[i] + block_size, y[i] + block_size)).save(save_path + "%06d_class.png" % i)
     else:
         i = 0
         if use_tf:
             count = 0
-            file_num = 0
             for x in range(0, shape[0] - block_size, int(block_size * (1 - overlapping))):
                 for y in range(0, shape[1] - block_size, int(block_size * (1 - overlapping))):
                     if count == 0:
-                        print("create data_%04d.tfrecords" % file_num)
-                        writer = tf.python_io.TFRecordWriter("data/train/data_%04d.tfrecords" % file_num)
+                        print("create data_%04d.tfrecords" % index)
+                        writer = tf.python_io.TFRecordWriter(save_path + "data_%04d.tfrecords" % index)
                     origin_raw = _origin.crop((x, y, x + block_size, y + block_size)).tobytes()
                     marking_raw = _marking.crop((x, y, x + block_size, y + block_size)).tobytes()
                     example = tf.train.Example(features=tf.train.Features(feature={
@@ -75,13 +73,13 @@ def split_data(_origin, _marking, block_size=256, overlapping=0.3, use_tf=False,
                     count += 1
                     if count >= image_num:
                         count = 0
-                        file_num += 1
+                        index += 1
                         writer.close()
         else:
             for x in range(0, shape[0] - block_size, int(block_size * (1 - overlapping))):
                 for y in range(0, shape[1] - block_size, int(block_size * (1 - overlapping))):
-                    _origin.crop((x, y, x + block_size, y + block_size)).save("data/train/%06d.png" % i)
-                    _marking.crop((x, y, x + block_size, y + block_size)).save("data/train/%06d_class.png" % i)
+                    _origin.crop((x, y, x + block_size, y + block_size)).save(save_path + "%06d.png" % i)
+                    _marking.crop((x, y, x + block_size, y + block_size)).save(save_path + "%06d_class.png" % i)
                     i += 1
 
 
@@ -197,6 +195,17 @@ def batch_norm(value, is_train=True, name='batch_norm', epsilon=1e-5, momentum=0
 if __name__ == '__main__':
     marking = Image.open("data/CCF-training/1_class_8bits.png")
     origin = Image.open("data/CCF-training/1-8bits.png")
+    size = marking.size
+
+    # origin为三通道8bit，marking为单通道8bit，故此，单个tfrecords文件大小为：(3 + 1) * (block_size * block_size) * image_num
+    # (3 + 1) * 512 * 512 * 256 B = 256MB
+    scala = 4
+    image_size = 256
+    block_size = image_size // scala
+    image_num = int(256 * (512 / block_size) * (512 / block_size))
+    size = (size[0] // scala, size[1] // scala)
+    marking = marking.resize(size, Image.BILINEAR)
+    origin = origin.resize(size, Image.BILINEAR)
 
     # visualization(_origin, _marking, 0.5)
-    split_data(origin, marking, block_size=512, use_tf=True, random=True, image_num=256)
+    split_data(origin, marking, save_path="data/train/", block_size=block_size, use_tf=True, random=True, image_num=image_num, index=0)

@@ -1,5 +1,4 @@
 # coding:utf-8
-# 卷积神经网络，图像大小不变化
 
 from utils import *
 import tensorflow as tf
