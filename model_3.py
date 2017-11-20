@@ -49,7 +49,7 @@ def model(x, y, _batch_size, _image_size):
 
 
 if __name__ == '__main__':
-    batch_size = 16
+    batch_size = 4
     image_size = 512
     X, Y = read_data(dir_path="data/train_512_1/", block_size=image_size)
     X, Y = tf.train.shuffle_batch([X, Y], batch_size=batch_size, capacity=2000, min_after_dequeue=1000)

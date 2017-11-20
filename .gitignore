@@ -4,3 +4,4 @@ data/CCF-training/
 .idea/
 data/train*
 *.png
+models/
