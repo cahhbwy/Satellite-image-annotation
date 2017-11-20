@@ -7,13 +7,14 @@ import tensorflow as tf
 
 def model(x, y, batch_size, image_size):
     h_0 = tf.divide(tf.cast(x, tf.float32), 255.)
-    h_1 = lrelu(batch_norm(conv2d(h_0, 10, k_h=11, k_w=11, strides=(1, 1, 1, 1), name="conv2d_0"), name="bn_1"))
-    h_2 = lrelu(batch_norm(conv2d(h_1, 20, k_h=9, k_w=9, strides=(1, 1, 1, 1), name="conv2d_2"), name="bn_3"))
+    h_1 = lrelu(batch_norm(conv2d(h_0, 10, k_h=11, k_w=11, strides=(1, 2, 2, 1), name="conv2d_0"), name="bn_1"))
+    h_2 = lrelu(batch_norm(conv2d(h_1, 20, k_h=9, k_w=9, strides=(1, 2, 2, 1), name="conv2d_2"), name="bn_3"))
     h_3 = lrelu(batch_norm(conv2d(h_2, 40, k_h=7, k_w=7, strides=(1, 1, 1, 1), name="conv2d_4"), name="bn_5"))
-    h_4 = lrelu(batch_norm(conv2d(h_3, 20, k_h=7, k_w=7, strides=(1, 1, 1, 1), name="conv2d_6"), name="bn_7"))
-    h_5 = conv2d(h_4, 5, k_h=5, k_w=5, strides=(1, 1, 1, 1), name="conv2d_8")
-    loss = tf.reduce_sum(tf.nn.softmax_cross_entropy_with_logits(logits=h_5, labels=tf.one_hot(y, 5)))
-    predict = tf.cast(tf.argmax(h_5, axis=3), tf.uint8)
+    h_4 = lrelu(batch_norm(conv2d(h_3, 40, k_h=7, k_w=7, strides=(1, 1, 1, 1), name="conv2d_6"), name="bn_7"))
+    h_5 = lrelu(batch_norm(conv2d(tf.image.resize_images(h_4, [image_size // 2, image_size // 2]), 20, k_h=7, k_w=7, strides=(1, 1, 1, 1), name="conv2d_7"), name="bn_8"))
+    h_6 = conv2d(tf.image.resize_images(h_5, [image_size, image_size]), 5, k_h=5, k_w=5, strides=(1, 1, 1, 1), name="conv2d_9")
+    loss = tf.reduce_sum(tf.nn.softmax_cross_entropy_with_logits(logits=h_6, labels=tf.one_hot(y, 5)))
+    predict = tf.cast(tf.argmax(h_6, axis=3), tf.uint8)
     acc = tf.reduce_mean(tf.cast(tf.equal(predict, y), tf.float32))
     return loss, acc, predict
 
