@@ -157,7 +157,9 @@ def conv2d(value, output_dim, k_h=5, k_w=5, strides=(1, 2, 2, 1), name='conv2d')
         weights = weight('weights', [k_h, k_w, value.get_shape()[-1], output_dim])
         conv = tf.nn.conv2d(value, weights, strides=strides, padding='SAME')
         biases = bias('biases', [output_dim])
-        conv = tf.reshape(tf.nn.bias_add(conv, biases), conv.get_shape())
+        conv_shape = conv.get_shape().as_list()
+        conv_shape[0] = -1
+        conv = tf.reshape(tf.nn.bias_add(conv, biases), conv_shape)
         return conv
 
 
