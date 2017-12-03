@@ -20,7 +20,7 @@ def model(x, y, batch_size, image_size):
 
 if __name__ == '__main__':
     batch_size = 4
-    X, Y = read_data(block_size=512)
+    X, Y = read_data(dir_path="data/train_512_1/", block_size=512)
     X, Y = tf.train.shuffle_batch([X, Y], batch_size=batch_size, capacity=2000, min_after_dequeue=1000)
     m_loss, m_acc, m_predict = model(X, Y, batch_size=batch_size, image_size=512)
     global_step = tf.Variable(0, trainable=False)
