@@ -5,3 +5,4 @@ data/CCF-training/
 data/train*
 *.png
 models/
+sample/
