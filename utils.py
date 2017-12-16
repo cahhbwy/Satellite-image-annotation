@@ -195,19 +195,22 @@ def batch_norm(value, is_train=True, name='batch_norm', epsilon=1e-5, momentum=0
 
 
 if __name__ == '__main__':
-    marking = Image.open("data/CCF-training/1_class_8bits.png")
-    origin = Image.open("data/CCF-training/1-8bits.png")
-    size = marking.size
+    marking = [Image.open("data/CCF-training/1_class_8bits.png"), Image.open("data/CCF-training/2_class_8bits.png")]
+    origin = [Image.open("data/CCF-training/1-8bits.png"), Image.open("data/CCF-training/2-8bits.png")]
 
     # origin为三通道8bit，marking为单通道8bit，故此，单个tfrecords文件大小为：(3 + 1) * (block_size * block_size) * image_num
     # (3 + 1) * 512 * 512 * 256 B = 256MB
-    scala = 4
-    image_size = 256
-    block_size = image_size // scala
-    image_num = int(256 * (512 / block_size) * (512 / block_size))
-    size = (size[0] // scala, size[1] // scala)
-    marking = marking.resize(size, Image.BILINEAR)
-    origin = origin.resize(size, Image.BILINEAR)
-
-    # visualization(_origin, _marking, 0.5)
-    split_data(origin, marking, save_path="data/train/", block_size=block_size, use_tf=True, random=True, image_num=image_num, index=0)
+    save_path = "data/train/"
+    if not os.path.exists(save_path):
+        os.mkdir("data/train/")
+    for i in [0, 1]:
+        size = marking[i].size
+        scala = 1
+        image_size = 512
+        block_size = image_size // scala
+        image_num = int(256 * (512 / block_size) * (512 / block_size))
+        size = (size[0] // scala, size[1] // scala)
+        marking[i] = marking[i].resize(size, Image.BILINEAR)
+        origin[i] = origin[i].resize(size, Image.BILINEAR)
+        split_data(origin[i], marking[i], save_path=save_path, block_size=block_size, use_tf=True, random=True, image_num=image_num, index=len(os.listdir(save_path)))
+        # visualization(origin[i], marking[i], 0.5)
