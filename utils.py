@@ -140,6 +140,18 @@ def lrelu(x, leak=0.2, name="lrelu"):
         return tf.maximum(x, leak * x, name=name)
 
 
+def max_pool_2x2(x, name="pool"):
+    with tf.variable_scope(name):
+        return tf.nn.max_pool(x, [1, 2, 2, 1], [1, 2, 2, 1], "VALID", name=name)
+
+
+def max_unpool_2x2(x, name="unpool"):
+    new_height = x.get_shape()[1].value * 2
+    new_width = x.get_shape()[2].value * 2
+    with tf.variable_scope(name):
+        return tf.image.resize_nearest_neighbor(x, (new_height, new_width))
+
+
 def deconv2d(value, output_shape, k_h=5, k_w=5, strides=(1, 2, 2, 1), name='deconv2d', with_w=False):
     with tf.variable_scope(name):
         weights = weight('weights', [k_h, k_w, output_shape[-1], value.get_shape()[-1]])
